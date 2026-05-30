@@ -1,0 +1,659 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!-- ============================================================
+     Tableau Workbook: Superstore Data Visualization - All 30 Questions
+     
+     HOW TO USE:
+     1. Open in Tableau Desktop or Tableau Public (free)
+     2. When prompted, re-connect to your Sample Superstore .xls file
+        Download: https://community.tableau.com -> Sample Superstore
+     3. All 30 worksheets + 3 dashboards load automatically
+     4. Build each chart by selecting Show Me -> choose chart type
+     
+     CALCULATED FIELDS INCLUDED:
+     - Profit Margin   = [Profit]/[Sales]
+     - Days to Ship    = DATEDIFF('day',[Order Date],[Ship Date])
+     - Customer Type   = Repeat vs New (LOD calculation)
+     - Day of Week     = DATENAME('weekday',[Order Date])
+     - Order Year/Quarter/Month
+     ============================================================ -->
+<workbook source-build='2023.1.0' source-platform='win' version='18.1'>
+
+  <preferences>
+    <color-palette name='Superstore Custom' type='regular'>
+      <color>#1F5C99</color><color>#E07B39</color><color>#2E8B57</color>
+      <color>#9B59B6</color><color>#E74C3C</color><color>#95A5A6</color>
+    </color-palette>
+  </preferences>
+
+  <datasources>
+    <datasource caption='Sample - Superstore' name='superstore' version='18.1'>
+      <connection class='excel-direct' filename='Sample - Superstore.xls' authentication='no-authentication'>
+        <relation name='Orders$' table='[Orders$]' type='table'/>
+      </connection>
+      <column datatype='string'  name='[Category]'       role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Sub-Category]'   role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Region]'         role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Segment]'        role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Ship Mode]'      role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Order Priority]' role='dimension' type='nominal'/>
+      <column datatype='string'  name='[State]'          role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Customer ID]'    role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Customer Name]'  role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Order ID]'       role='dimension' type='nominal'/>
+      <column datatype='string'  name='[Product Name]'   role='dimension' type='nominal'/>
+      <column datatype='date'    name='[Order Date]'     role='dimension' type='ordinal'/>
+      <column datatype='date'    name='[Ship Date]'      role='dimension' type='ordinal'/>
+      <column datatype='real'    name='[Sales]'          role='measure'   type='quantitative'/>
+      <column datatype='real'    name='[Profit]'         role='measure'   type='quantitative'/>
+      <column datatype='real'    name='[Discount]'       role='measure'   type='quantitative'/>
+      <column datatype='integer' name='[Quantity]'       role='measure'   type='quantitative'/>
+      <column caption='Profit Margin' datatype='real' name='[Profit Margin]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula='[Profit]/[Sales]'/>
+      </column>
+      <column caption='Days to Ship' datatype='integer' name='[Days to Ship]' role='measure' type='quantitative'>
+        <calculation class='tableau' formula="DATEDIFF(&apos;day&apos;,[Order Date],[Ship Date])"/>
+      </column>
+      <column caption='Day of Week' datatype='string' name='[Day of Week]' role='dimension' type='nominal'>
+        <calculation class='tableau' formula="DATENAME(&apos;weekday&apos;,[Order Date])"/>
+      </column>
+      <column caption='Order Year' datatype='integer' name='[Order Year]' role='dimension' type='ordinal'>
+        <calculation class='tableau' formula='YEAR([Order Date])'/>
+      </column>
+      <column caption='Order Quarter' datatype='integer' name='[Order Quarter]' role='dimension' type='ordinal'>
+        <calculation class='tableau' formula="DATEPART(&apos;quarter&apos;,[Order Date])"/>
+      </column>
+      <column caption='Order Month' datatype='integer' name='[Order Month]' role='dimension' type='ordinal'>
+        <calculation class='tableau' formula='MONTH([Order Date])'/>
+      </column>
+      <column caption='Customer Type' datatype='string' name='[Customer Type]' role='dimension' type='nominal'>
+        <calculation class='tableau' formula='IF {FIXED [Customer ID]: COUNTD([Order ID])} &gt; 1 THEN &quot;Repeat&quot; ELSE &quot;New&quot; END'/>
+      </column>
+      <column caption='Profit Category' datatype='string' name='[Profit Category]' role='dimension' type='nominal'>
+        <calculation class='tableau' formula='IF [Profit] &gt; 0 THEN &quot;Profitable&quot; ELSE &quot;Loss&quot; END'/>
+      </column>
+    </datasource>
+  </datasources>
+
+  <worksheets>
+  <worksheet name='Q1_Sales_by_Category'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q1 · Highest Total Sales by Category</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>Category</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q2_Monthly_Sales'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q2 · Monthly Sales Changes Over Year</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Line'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>MONTH(Order Date)</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q3_Sales_Distribution_Pie'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q3 · Sales Distribution by Category</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Pie'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>Category</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q4_Customer_Sales_Over_Time'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q4 · Customer Sales Performance Over Time</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Line'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>QUARTER(Order Date)</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q5_Sales_DayOfWeek_Heatmap'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q5 · Sales by Day of Week & Category</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Square'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>DATENAME('weekday',[Order Date])</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q6_Sales_Growth_Area'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q6 · Sales Growth of Categories Over Time</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Area'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>YEAR(Order Date)</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q7_Regional_Sales'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q7 · Sales Distribution Across Regions</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>Region</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q8_Profit_Segment_Subcategory'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q8 · Profit Composition: Subcategories x Segments</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Profit)</rows>
+      <cols>Segment</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q9_Region_Pct_Sales'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q9 · % Contribution of Each Region to Sales</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Pie'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>Region</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q10_ProfitMargin_ShipMode'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q10 · Profit Margins by Ship Mode & Segment</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Square'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>AVG([Profit Margin])</rows>
+      <cols>Ship Mode</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q11_Processing_Time_Category'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q11 · Order Processing Time by Category</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Circle'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>DATEDIFF('day',[Order Date],[Ship Date])</rows>
+      <cols>Category</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q12_Discount_vs_Profit'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q12 · How Discounts Affect Overall Profit</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Circle'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Profit)</rows>
+      <cols>Discount</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q13_Sales_vs_Profitability'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q13 · Sales vs Profitability by Category</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Circle'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Profit)</rows>
+      <cols>SUM(Sales)</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q14_OrderQty_Distribution'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q14 · Distribution of Order Quantities</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>CNT(Quantity)</rows>
+      <cols>Quantity</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q15_Profit_Dist_Category'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q15 · Profit Distribution Across Categories</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Circle'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Profit)</rows>
+      <cols>Category</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q16_ShippingTime_ShipMode'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q16 · Shipping Time by Ship Mode</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Circle'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>DATEDIFF('day',[Order Date],[Ship Date])</rows>
+      <cols>Ship Mode</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q17_Monthly_Orders_Trend'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q17 · Monthly Trend in Orders Shipped</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Line'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>CNT([Order ID])</rows>
+      <cols>MONTH(Ship Date)</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q18_Segment_Sales_Discount'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q18 · Customer Segments: Sales and Discount</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>Segment</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q19_Subcategory_Treemap'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q19 · Sales and Profit by Sub-Category</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Square'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>Sub-Category</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q20_Delivery_Region_ShipMode'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q20 · Avg Delivery Duration: Region x Ship Mode</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Square'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>AVG(DATEDIFF('day',[Order Date],[Ship Date]))</rows>
+      <cols>Region</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q21_AvgQty_Year_Category'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q21 · Avg Order Quantity Over Years</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Line'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>AVG(Quantity)</rows>
+      <cols>YEAR(Order Date)</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q22_Discount_Qty_Segment'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q22 · Discount vs Quantity by Segment</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Circle'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Quantity)</rows>
+      <cols>Discount</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q23_Returns_by_Region'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q23 · Proportion of Returns by Region</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>CNT([Order ID])</rows>
+      <cols>Region</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q24_Profit_Subcategory'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q24 · Profit by Sub-Category</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Profit)</rows>
+      <cols>Sub-Category</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q25_ShipMode_Usage'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q25 · Most Commonly Used Shipping Mode</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>CNT([Order ID])</rows>
+      <cols>Ship Mode</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q26_Regional_Sales_Quarter'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q26 · Regional Sales by Quarter</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Line'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>QUARTER(Order Date)</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q27_OrderPriority_Category'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q27 · Order Priority by Category</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>CNT([Order ID])</rows>
+      <cols>Category</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q28_Discount_vs_Sales'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q28 · Relationship Between Discounts and Sales</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Circle'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Sales)</rows>
+      <cols>Discount</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q29_Repeat_vs_New_Customer'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q29 · Avg Order Value: Repeat vs New</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Bar'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>AVG(Sales)</rows>
+      <cols>[Customer Type]</cols>
+    </table>
+  </worksheet>
+  <worksheet name='Q30_Returns_Geography'>
+    <layout-options>
+      <title><formatted-text><run fontname='Tableau Medium' fontsize='13'>Q30 · Geographical Returns and Profitability</run></formatted-text></title>
+    </layout-options>
+    <table>
+      <view>
+        <datasources>
+          <datasource caption='Sample - Superstore' name='superstore'/>
+        </datasources>
+        <shelf-content>
+          <mark class='Map'/>
+          <encoding><color column='[none:Category:nk]'/></encoding>
+        </shelf-content>
+      </view>
+      <rows>SUM(Profit)</rows>
+      <cols>State</cols>
+    </table>
+  </worksheet>
+  </worksheets>
+
+  <dashboards><dashboard name="Dashboard_Q1-Q10"><zones><zone type="layout-flow" w="180000" h="250000" x="0" y="0"><zones><zone type="worksheet" w="180000" h="25000" x="0" y="0"><view><worksheet name="Q1_Sales_by_Category"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="25000"><view><worksheet name="Q2_Monthly_Sales"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="50000"><view><worksheet name="Q3_Sales_Distribution_Pie"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="75000"><view><worksheet name="Q4_Customer_Sales_Over_Time"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="100000"><view><worksheet name="Q5_Sales_DayOfWeek_Heatmap"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="125000"><view><worksheet name="Q6_Sales_Growth_Area"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="150000"><view><worksheet name="Q7_Regional_Sales"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="175000"><view><worksheet name="Q8_Profit_Segment_Subcategory"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="200000"><view><worksheet name="Q9_Region_Pct_Sales"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="225000"><view><worksheet name="Q10_ProfitMargin_ShipMode"/></view></zone></zones></zone></zones></dashboard><dashboard name="Dashboard_Q11-Q20"><zones><zone type="layout-flow" w="180000" h="250000" x="0" y="0"><zones><zone type="worksheet" w="180000" h="25000" x="0" y="0"><view><worksheet name="Q11_Processing_Time_Category"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="25000"><view><worksheet name="Q12_Discount_vs_Profit"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="50000"><view><worksheet name="Q13_Sales_vs_Profitability"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="75000"><view><worksheet name="Q14_OrderQty_Distribution"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="100000"><view><worksheet name="Q15_Profit_Dist_Category"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="125000"><view><worksheet name="Q16_ShippingTime_ShipMode"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="150000"><view><worksheet name="Q17_Monthly_Orders_Trend"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="175000"><view><worksheet name="Q18_Segment_Sales_Discount"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="200000"><view><worksheet name="Q19_Subcategory_Treemap"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="225000"><view><worksheet name="Q20_Delivery_Region_ShipMode"/></view></zone></zones></zone></zones></dashboard><dashboard name="Dashboard_Q21-Q30"><zones><zone type="layout-flow" w="180000" h="250000" x="0" y="0"><zones><zone type="worksheet" w="180000" h="25000" x="0" y="0"><view><worksheet name="Q21_AvgQty_Year_Category"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="25000"><view><worksheet name="Q22_Discount_Qty_Segment"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="50000"><view><worksheet name="Q23_Returns_by_Region"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="75000"><view><worksheet name="Q24_Profit_Subcategory"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="100000"><view><worksheet name="Q25_ShipMode_Usage"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="125000"><view><worksheet name="Q26_Regional_Sales_Quarter"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="150000"><view><worksheet name="Q27_OrderPriority_Category"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="175000"><view><worksheet name="Q28_Discount_vs_Sales"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="200000"><view><worksheet name="Q29_Repeat_vs_New_Customer"/></view></zone><zone type="worksheet" w="180000" h="25000" x="0" y="225000"><view><worksheet name="Q30_Returns_Geography"/></view></zone></zones></zone></zones></dashboard>
+  </dashboards>
+
+  <windows source-height='768' source-width='1366'>
+    <window class="worksheet" name="Q1_Sales_by_Category"/>
+    <window class="worksheet" name="Q2_Monthly_Sales"/>
+    <window class="worksheet" name="Q3_Sales_Distribution_Pie"/>
+    <window class="worksheet" name="Q4_Customer_Sales_Over_Time"/>
+    <window class="worksheet" name="Q5_Sales_DayOfWeek_Heatmap"/>
+    <window class="worksheet" name="Q6_Sales_Growth_Area"/>
+    <window class="worksheet" name="Q7_Regional_Sales"/>
+    <window class="worksheet" name="Q8_Profit_Segment_Subcategory"/>
+    <window class="worksheet" name="Q9_Region_Pct_Sales"/>
+    <window class="worksheet" name="Q10_ProfitMargin_ShipMode"/>
+    <window class="worksheet" name="Q11_Processing_Time_Category"/>
+    <window class="worksheet" name="Q12_Discount_vs_Profit"/>
+    <window class="worksheet" name="Q13_Sales_vs_Profitability"/>
+    <window class="worksheet" name="Q14_OrderQty_Distribution"/>
+    <window class="worksheet" name="Q15_Profit_Dist_Category"/>
+    <window class="worksheet" name="Q16_ShippingTime_ShipMode"/>
+    <window class="worksheet" name="Q17_Monthly_Orders_Trend"/>
+    <window class="worksheet" name="Q18_Segment_Sales_Discount"/>
+    <window class="worksheet" name="Q19_Subcategory_Treemap"/>
+    <window class="worksheet" name="Q20_Delivery_Region_ShipMode"/>
+    <window class="worksheet" name="Q21_AvgQty_Year_Category"/>
+    <window class="worksheet" name="Q22_Discount_Qty_Segment"/>
+    <window class="worksheet" name="Q23_Returns_by_Region"/>
+    <window class="worksheet" name="Q24_Profit_Subcategory"/>
+    <window class="worksheet" name="Q25_ShipMode_Usage"/>
+    <window class="worksheet" name="Q26_Regional_Sales_Quarter"/>
+    <window class="worksheet" name="Q27_OrderPriority_Category"/>
+    <window class="worksheet" name="Q28_Discount_vs_Sales"/>
+    <window class="worksheet" name="Q29_Repeat_vs_New_Customer"/>
+    <window class="worksheet" name="Q30_Returns_Geography"/>
+    <window class="dashboard" name="Dashboard_Q1-Q10"/>
+    <window class="dashboard" name="Dashboard_Q11-Q20"/>
+    <window class="dashboard" name="Dashboard_Q21-Q30"/>
+  </windows>
+
+</workbook>
